@@ -1,38 +1,49 @@
-import React, { useEffect } from 'react';
-import { Container, Typography, Button } from '@mui/material';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import ProfilePatient from './pages/ProfilePatient';
+import ProfileMedecin from './pages/ProfileMedecin';
+import ProfileAssistant from './pages/ProfileAssistant';
+import ProfileAdmin from './pages/ProfileAdmin';
+import { AuthContext } from './context/AuthContext';
 import './App.css';
 
 function App() {
-  // Log pour vérifier que le composant est chargé
-  useEffect(() => {
-    console.log('[App.js] Composant App chargé');
-    console.log('[App.js] Vérification environnement :', {
-      nodeEnv: process.env.NODE_ENV,
-      reactVersion: React.version,
-    });
-  }, []);
+    const context = useContext(AuthContext);
 
-  return (
-    <Container maxWidth="sm" style={{ marginTop: '2rem', textAlign: 'center' }}>
-      <Typography variant="h4" color="primary" gutterBottom>
-        Bienvenue sur MediConnect
-      </Typography>
-      <Typography variant="body1" color="textSecondary">
-        Plateforme médicale pour la gestion des patients et des données DICOM.
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        style={{ marginTop: '1rem' }}
-        onClick={() => {
-          console.log('[App.js] Bouton Test cliqué');
-          alert('Bouton de test cliqué !');
-        }}
-      >
-        Test
-      </Button>
-    </Container>
-  );
+    if (!context) {
+        return <div>Erreur : AuthContext non défini</div>;
+    }
+
+    const { user, loading, logout } = context;
+
+    if (loading) return <div>Chargement...</div>;
+
+    return (
+        <Router>
+            <div className="App">
+                <h1>MediConnect</h1>
+                <nav>
+                    {user && (
+                        <>
+                            {user.role === 'patient' && <Link to="/profile/patient">Mon Espace</Link>}
+                            {user.role === 'medecin' && <Link to="/profile/medecin">Mon Espace</Link>}
+                            {user.role === 'assistant' && <Link to="/profile/assistant">Mon Espace</Link>}
+                            {user.role === 'admin' && <Link to="/profile/admin">Mon Espace</Link>}
+                            {' | '}
+                            <button onClick={logout}>Déconnexion</button>
+                        </>
+                    )}
+                </nav>
+                <Routes>
+                    <Route path="/profile/patient" element={<ProfilePatient />} />
+                    <Route path="/profile/medecin" element={<ProfileMedecin />} />
+                    <Route path="/profile/assistant" element={<ProfileAssistant />} />
+                    <Route path="/profile/admin" element={<ProfileAdmin />} />
+                    <Route path="*" element={<div>Page non trouvée</div>} />
+                </Routes>
+            </div>
+        </Router>
+    );
 }
 
 export default App;
